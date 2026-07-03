@@ -2,7 +2,7 @@
 
 Turns a rough product idea into **BRD → PRD → FSD → a dependency-aware ticket backlog**, with sprint planning, auto-packing, a visual dependency graph, PM analytics, and CSV export for Jira or Linear. Everything runs on free tools:
 
-**🔗 Live demo:** _add your Vercel URL here after deploying_
+**🔗 Live demo:** https://backlog-forge.vercel.app
 
 | Layer | Tool | Cost |
 |---|---|---|
