@@ -10,6 +10,13 @@ import {
 } from "@/lib/templates";
 import { StatusBadge } from "@/components/StatusBadge";
 import { GenerateDocButton } from "@/components/GenerateButtons";
+import {
+  ProgressStepper,
+  computeProjectSteps,
+} from "@/components/ProgressStepper";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function ProjectPage({
   params,
@@ -26,6 +33,7 @@ export default async function ProjectPage({
     },
   });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   // latest version of each doc type
   const latestByType = new Map<string, (typeof project.documents)[number]>();
@@ -35,8 +43,13 @@ export default async function ProjectPage({
 
   return (
     <div className="max-w-4xl">
+      {project.isDemo && <DemoBanner />}
       <h1 className="text-2xl font-semibold">{project.name}</h1>
       <p className="mt-2 text-zinc-600">{project.idea}</p>
+
+      <div className="mt-6">
+        <ProgressStepper steps={computeProjectSteps(project)} />
+      </div>
 
       <h2 className="mt-8 text-lg font-medium">Documents</h2>
       <p className="mt-1 text-sm text-zinc-500">

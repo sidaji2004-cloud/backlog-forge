@@ -8,6 +8,9 @@ import {
 } from "@/lib/templates";
 import { DocumentEditor } from "@/components/DocumentEditor";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function DocumentPage({
   params,
@@ -20,6 +23,7 @@ export default async function DocumentPage({
 
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   const doc = await prisma.document.findFirst({
     where: { projectId: id, type: docType },
@@ -33,6 +37,7 @@ export default async function DocumentPage({
 
   return (
     <div className="max-w-5xl">
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

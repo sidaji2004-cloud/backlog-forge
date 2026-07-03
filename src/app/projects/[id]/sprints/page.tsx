@@ -5,6 +5,9 @@ import { createSprint } from "@/lib/ticket-actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { AutoPackButton } from "@/components/AutoPackButton";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function SprintsPage({
   params,
@@ -23,11 +26,13 @@ export default async function SprintsPage({
     },
   });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   const backlogPoints = project.tickets.reduce((s, t) => s + (t.estimate ?? 0), 0);
 
   return (
     <div className="max-w-4xl">
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

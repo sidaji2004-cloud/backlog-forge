@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { TICKET_STATUSES } from "@/lib/templates";
 import { packTickets, type CandidateTicket } from "@/lib/sprint-packing";
+import {
+  guardProjectMutation,
+  guardProjectMutationByTicket,
+  guardProjectMutationBySprint,
+} from "@/lib/authz";
 
 const PRIORITY_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
@@ -17,6 +22,7 @@ export async function setTicketStatus(ticketId: string, status: string) {
   if (!TICKET_STATUSES.includes(status as (typeof TICKET_STATUSES)[number])) {
     throw new Error(`Invalid status: ${status}`);
   }
+  await guardProjectMutationByTicket(ticketId);
 
   const ticket = await prisma.ticket.findUniqueOrThrow({
     where: { id: ticketId },
@@ -45,11 +51,13 @@ export async function updateTicket(
   ticketId: string,
   data: { title?: string; description?: string; acceptanceCriteria?: string; priority?: string; estimate?: number | null }
 ) {
+  await guardProjectMutationByTicket(ticketId);
   const ticket = await prisma.ticket.update({ where: { id: ticketId }, data });
   revalidatePath(`/projects/${ticket.projectId}`, "layout");
 }
 
 export async function addDependency(ticketId: string, blockerId: string) {
+  await guardProjectMutationByTicket(ticketId);
   if (ticketId === blockerId) throw new Error("A ticket cannot block itself.");
   // reject if it would create a cycle (blocker already depends on ticket, transitively)
   const reaches = async (from: string, target: string): Promise<boolean> => {
@@ -71,12 +79,14 @@ export async function addDependency(ticketId: string, blockerId: string) {
 }
 
 export async function removeDependency(ticketId: string, blockerId: string) {
+  await guardProjectMutationByTicket(ticketId);
   const ticket = await prisma.ticket.findUniqueOrThrow({ where: { id: ticketId } });
   await prisma.ticketDependency.deleteMany({ where: { ticketId, blockerId } });
   revalidatePath(`/projects/${ticket.projectId}`, "layout");
 }
 
 export async function createSprint(projectId: string, formData: FormData) {
+  await guardProjectMutation(projectId);
   const name = String(formData.get("name") ?? "").trim();
   const goal = String(formData.get("goal") ?? "").trim();
   const capacity = Number(formData.get("capacity") ?? 20);
@@ -95,6 +105,7 @@ export async function createSprint(projectId: string, formData: FormData) {
 }
 
 export async function assignTicketToSprint(ticketId: string, sprintId: string | null) {
+  await guardProjectMutationByTicket(ticketId);
   const ticket = await prisma.ticket.update({
     where: { id: ticketId },
     data: { sprintId },
@@ -108,6 +119,7 @@ export async function assignTicketToSprint(ticketId: string, sprintId: string | 
  * its blockers are done or already picked into this same sprint).
  */
 export async function autoPackSprintAction(sprintId: string): Promise<number> {
+  await guardProjectMutationBySprint(sprintId);
   const sprint = await prisma.sprint.findUniqueOrThrow({
     where: { id: sprintId },
     include: { tickets: { select: { estimate: true } } },

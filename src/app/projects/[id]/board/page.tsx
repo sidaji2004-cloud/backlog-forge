@@ -6,6 +6,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { GenerateTicketsButton } from "@/components/GenerateButtons";
 import { ExportCsvButton } from "@/components/ExportCsvButton";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function BoardPage({
   params,
@@ -23,9 +26,11 @@ export default async function BoardPage({
     },
   });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   return (
     <div>
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

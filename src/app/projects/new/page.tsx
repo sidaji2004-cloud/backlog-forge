@@ -1,6 +1,12 @@
+import { redirect } from "next/navigation";
 import { createProject } from "@/lib/actions";
+import { auth } from "@/auth";
 
-export default function NewProjectPage() {
+export default async function NewProjectPage() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/signin?callbackUrl=/projects/new");
+  }
   return (
     <div className="max-w-xl">
       <h1 className="text-2xl font-semibold">New project</h1>

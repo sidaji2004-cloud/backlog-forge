@@ -9,6 +9,7 @@ import {
   type GeneratedTicket,
 } from "@/lib/ai";
 import type { DocType } from "@/lib/templates";
+import { guardProjectMutation } from "@/lib/authz";
 
 async function latestDoc(projectId: string, type: string) {
   return prisma.document.findFirst({
@@ -37,6 +38,7 @@ function formatDiscoveryContext(project: {
 export async function getClarifyingQuestionsAction(
   projectId: string
 ): Promise<string[]> {
+  await guardProjectMutation(projectId);
   const project = await prisma.project.findUniqueOrThrow({
     where: { id: projectId },
   });
@@ -53,6 +55,7 @@ export async function generateDocAction(
   type: DocType,
   answers?: string
 ) {
+  await guardProjectMutation(projectId);
   const project = await prisma.project.findUniqueOrThrow({
     where: { id: projectId },
   });
@@ -103,6 +106,7 @@ export async function generateDocAction(
 export async function generateTicketsAction(
   projectId: string
 ): Promise<GeneratedTicket[]> {
+  await guardProjectMutation(projectId);
   const prd = await latestDoc(projectId, "PRD");
   if (!prd) throw new Error("A PRD is needed before generating tickets.");
   const fsd = await latestDoc(projectId, "FSD");
@@ -124,6 +128,7 @@ export async function saveReviewedTicketsAction(
   projectId: string,
   reviewed: (GeneratedTicket | null)[]
 ): Promise<number> {
+  await guardProjectMutation(projectId);
   const savedCount = reviewed.filter((t) => t !== null).length;
   if (savedCount === 0) {
     throw new Error("No tickets were selected to save.");

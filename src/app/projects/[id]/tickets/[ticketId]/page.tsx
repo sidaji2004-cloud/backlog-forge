@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { TicketDetail } from "@/components/TicketDetail";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function TicketPage({
   params,
@@ -28,9 +31,11 @@ export default async function TicketPage({
     prisma.sprint.findMany({ where: { projectId: id }, orderBy: { startDate: "asc" } }),
     prisma.project.findUniqueOrThrow({ where: { id } }),
   ]);
+  if (!canViewProject(project, await auth())) notFound();
 
   return (
     <div className="max-w-3xl">
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

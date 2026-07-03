@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { DependencyGraph } from "@/components/DependencyGraph";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 export default async function GraphPage({
   params,
@@ -20,6 +23,7 @@ export default async function GraphPage({
     },
   });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   const tickets = project.tickets.map((t) => ({
     id: t.id,
@@ -34,6 +38,7 @@ export default async function GraphPage({
 
   return (
     <div>
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

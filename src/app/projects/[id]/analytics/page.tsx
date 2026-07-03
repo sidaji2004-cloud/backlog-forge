@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { computeSprintStats, computeCycleTimeSummary } from "@/lib/analytics";
+import { DemoBanner } from "@/components/DemoBanner";
+import { auth } from "@/auth";
+import { canViewProject } from "@/lib/authz";
 
 const CHART_HEIGHT = 160;
 const BAR_WIDTH = 26;
@@ -23,6 +26,7 @@ export default async function AnalyticsPage({
     },
   });
   if (!project) notFound();
+  if (!canViewProject(project, await auth())) notFound();
 
   const sprints = project.sprints.map((s) => ({ id: s.id, name: s.name }));
   const tickets = project.tickets.map((t) => ({
@@ -43,6 +47,7 @@ export default async function AnalyticsPage({
 
   return (
     <div>
+      {project.isDemo && <DemoBanner />}
       <Breadcrumb
         items={[
           { label: project.name, href: `/projects/${id}` },

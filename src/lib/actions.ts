@@ -4,6 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { blankTemplate, DOC_STATUSES, type DocType } from "@/lib/templates";
+import {
+  guardProjectMutation,
+  guardProjectMutationByDocument,
+  requireUser,
+} from "@/lib/authz";
 
 function optionalField(formData: FormData, key: string): string | null {
   const value = String(formData.get(key) ?? "").trim();
@@ -11,6 +16,7 @@ function optionalField(formData: FormData, key: string): string | null {
 }
 
 export async function createProject(formData: FormData) {
+  const user = await requireUser();
   const name = String(formData.get("name") ?? "").trim();
   const idea = String(formData.get("idea") ?? "").trim();
   if (!name || !idea) throw new Error("Name and idea are required.");
@@ -22,6 +28,7 @@ export async function createProject(formData: FormData) {
       audience: optionalField(formData, "audience"),
       techStack: optionalField(formData, "techStack"),
       constraints: optionalField(formData, "constraints"),
+      userId: user.id,
     },
   });
   revalidatePath("/", "layout");
@@ -29,6 +36,7 @@ export async function createProject(formData: FormData) {
 }
 
 export async function createDocument(projectId: string, type: DocType) {
+  await guardProjectMutation(projectId);
   const latest = await prisma.document.findFirst({
     where: { projectId, type },
     orderBy: { version: "desc" },
@@ -45,6 +53,7 @@ export async function updateDocumentContent(
   documentId: string,
   content: string
 ) {
+  await guardProjectMutationByDocument(documentId);
   const doc = await prisma.document.update({
     where: { id: documentId },
     data: { content },
@@ -56,6 +65,7 @@ export async function setDocumentStatus(documentId: string, status: string) {
   if (!DOC_STATUSES.includes(status as (typeof DOC_STATUSES)[number])) {
     throw new Error(`Invalid status: ${status}`);
   }
+  await guardProjectMutationByDocument(documentId);
   const doc = await prisma.document.update({
     where: { id: documentId },
     data: { status },
@@ -65,6 +75,7 @@ export async function setDocumentStatus(documentId: string, status: string) {
 
 /** Snapshot the current version and start a new editable draft version. */
 export async function createNewVersion(documentId: string) {
+  await guardProjectMutationByDocument(documentId);
   const doc = await prisma.document.findUniqueOrThrow({
     where: { id: documentId },
   });

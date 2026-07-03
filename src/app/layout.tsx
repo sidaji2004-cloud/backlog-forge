@@ -6,6 +6,8 @@ import "./globals.css";
 import { prisma } from "@/lib/db";
 import { Sidebar } from "@/components/Sidebar";
 import { CommandPalette } from "@/components/CommandPalette";
+import { UserMenu } from "@/components/UserMenu";
+import { auth } from "@/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +20,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BacklogForge",
-  description: "Idea → BRD/PRD/FSD → backlog, exportable to Jira/Linear",
+  metadataBase: new URL("https://backlog-forge.vercel.app"),
+  title: "BacklogForge — AI-drafted BRDs, PRDs, and backlogs for PMs",
+  description:
+    "Turn a rough product idea into a full BRD → PRD → FSD → dependency-aware ticket backlog, with sprint planning, auto-packing, a visual dependency graph, and PM analytics. Free tools only.",
+  openGraph: {
+    title: "BacklogForge — AI-drafted BRDs, PRDs, and backlogs for PMs",
+    description:
+      "Idea → BRD → PRD → FSD → real backlog, with sprint planning and PM analytics. Built by a PM learning to ship.",
+    url: "https://backlog-forge.vercel.app",
+    siteName: "BacklogForge",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BacklogForge — AI-drafted BRDs, PRDs, and backlogs for PMs",
+    description:
+      "Idea → BRD → PRD → FSD → real backlog, with sprint planning and PM analytics.",
+  },
 };
 
 // Every page reads live data from Postgres — no static pre-rendering at build time.
@@ -32,11 +50,22 @@ export default async function RootLayout({
 }>) {
   // Never crash the layout — an unconfigured or unreachable DB just yields no
   // projects in the sidebar. Individual pages surface the real error.
+  // Signed-in users see: their projects + the demo. Signed-out visitors see:
+  // just the demo. Matches canViewProject() so nothing shows up here that a
+  // click would then 404 on.
+  const session = await auth();
+  const currentUserId = session?.user?.id ?? null;
   let projects: { id: string; name: string }[] = [];
   try {
     projects = await prisma.project.findMany({
-      where: { status: "active" },
-      orderBy: { updatedAt: "desc" },
+      where: {
+        status: "active",
+        OR: [
+          { isDemo: true },
+          ...(currentUserId ? [{ userId: currentUserId }] : []),
+        ],
+      },
+      orderBy: [{ isDemo: "desc" }, { updatedAt: "desc" }],
       select: { id: true, name: true },
     });
   } catch {
@@ -59,7 +88,8 @@ export default async function RootLayout({
             </span>
           </Link>
           <Sidebar projects={projects} />
-          <div className="p-3 border-t border-zinc-200 space-y-2">
+          <div className="p-3 border-t border-zinc-200 space-y-3">
+            <UserMenu />
             <p className="px-1 text-xs text-zinc-400">
               Press{" "}
               <kbd className="rounded border border-zinc-300 bg-zinc-100 px-1 py-0.5 font-mono">
