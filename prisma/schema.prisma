@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Stage 1: the thinnest working slice — projects, documents, tickets.
+// File storage, integrations, and compliance tables come in later stages.
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  idea        String
+  // Optional Discovery context — filled in via the "Add more context" section
+  // on the New Project form. Used to sharpen BRD generation when present.
+  audience    String?
+  techStack   String?
+  constraints String?
+  status      String     @default("active")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  documents   Document[]
+  tickets     Ticket[]
+  sprints     Sprint[]
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type      String // BRD | PRD | FSD
+  content   String
+  version   Int      @default(1)
+  status    String   @default("draft") // draft | review | approved
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, type, version])
+}
+
+model Ticket {
+  id                 String   @id @default(cuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title              String
+  description        String   @default("")
+  acceptanceCriteria String   @default("")
+  priority           String   @default("medium") // low | medium | high
+  estimate           Int?
+  status             String   @default("backlog") // backlog | todo | in-progress | done
+  completedAt        DateTime?
+  sourceSection      String?
+  sprintId           String?
+  sprint             Sprint?  @relation(fields: [sprintId], references: [id], onDelete: SetNull)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  blockedBy TicketDependency[] @relation("blocked")
+  blocks    TicketDependency[] @relation("blocker")
+}
+
+model TicketDependency {
+  id        String @id @default(cuid())
+  ticketId  String
+  blockerId String
+  ticket    Ticket @relation("blocked", fields: [ticketId], references: [id], onDelete: Cascade)
+  blocker   Ticket @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, blockerId])
+}
+
+model Sprint {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  goal      String   @default("")
+  capacity  Int      @default(20)
+  startDate DateTime
+  endDate   DateTime
+  tickets   Ticket[]
+  createdAt DateTime @default(now())
+}
