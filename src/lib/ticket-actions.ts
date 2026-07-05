@@ -18,6 +18,16 @@ const PRIORITY_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
  * "done") while any of its blockers are unfinished — that's the dependency
  * rule sprints live and die by.
  */
+/**
+ * Thin wrapper for the drag-and-drop kanban. The full status-change logic
+ * (blocker check, completedAt bookkeeping, guardProjectMutation) lives in
+ * setTicketStatus below — reusing it keeps drag-drop and click-to-change
+ * completely consistent.
+ */
+export async function moveTicket(ticketId: string, newStatus: string) {
+  return setTicketStatus(ticketId, newStatus);
+}
+
 export async function setTicketStatus(ticketId: string, status: string) {
   if (!TICKET_STATUSES.includes(status as (typeof TICKET_STATUSES)[number])) {
     throw new Error(`Invalid status: ${status}`);

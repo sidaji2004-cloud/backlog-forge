@@ -17,6 +17,9 @@ import {
 import { DemoBanner } from "@/components/DemoBanner";
 import { auth } from "@/auth";
 import { canViewProject } from "@/lib/authz";
+import { HelpTip } from "@/components/HelpTip";
+import { HelpHint } from "@/components/HelpHint";
+import { type HelpTerm } from "@/lib/help-text";
 
 export default async function ProjectPage({
   params,
@@ -41,9 +44,13 @@ export default async function ProjectPage({
     if (!latestByType.has(d.type)) latestByType.set(d.type, d);
   }
 
+  const docTermKey = (t: string): HelpTerm =>
+    (t.toLowerCase() as HelpTerm);
+
   return (
     <div className="max-w-4xl">
       {project.isDemo && <DemoBanner />}
+      <HelpHint />
       <h1 className="text-2xl font-semibold">{project.name}</h1>
       <p className="mt-2 text-zinc-600">{project.idea}</p>
 
@@ -64,7 +71,10 @@ export default async function ProjectPage({
               className="rounded-lg border border-zinc-200 bg-white p-4 flex flex-col"
             >
               <div className="flex items-center justify-between">
-                <p className="font-medium">{type}</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-medium">{type}</p>
+                  <HelpTip term={docTermKey(type)} />
+                </div>
                 {doc && <StatusBadge status={doc.status} />}
               </div>
               <p className="mt-1 text-xs text-zinc-500 flex-1">
@@ -101,28 +111,38 @@ export default async function ProjectPage({
         })}
       </div>
 
-      <h2 className="mt-10 text-lg font-medium">Execution</h2>
+      <div className="mt-10 flex items-center gap-1.5">
+        <h2 className="text-lg font-medium">Execution</h2>
+        <HelpTip term="execution-box" />
+      </div>
+      <p className="mt-1 text-sm text-zinc-500">
+        From spec to shipped. Real engineering teams live in Jira or Linear — export the finished backlog from the Board when you&apos;re ready to hand off.
+      </p>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <Link
-          href={`/projects/${project.id}/board`}
-          className="rounded-lg border border-zinc-200 bg-white p-4 hover:border-zinc-400"
-        >
-          <p className="font-medium">Ticket board</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {project.tickets.length} ticket(s) — kanban view, acceptance
-            criteria, dependencies, CSV export.
-          </p>
-        </Link>
-        <Link
-          href={`/projects/${project.id}/sprints`}
-          className="rounded-lg border border-zinc-200 bg-white p-4 hover:border-zinc-400"
-        >
-          <p className="font-medium">Sprints</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            {project.sprints.length} sprint(s) — plan batches of tickets with a
-            capacity.
-          </p>
-        </Link>
+        <div className="rounded-lg border border-zinc-200 bg-white p-4 hover:border-zinc-400">
+          <Link href={`/projects/${project.id}/board`} className="block">
+            <div className="flex items-center gap-1.5">
+              <p className="font-medium">Ticket board</p>
+              <HelpTip term="ticket-board" />
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              {project.tickets.length} ticket(s) — kanban view, acceptance
+              criteria, dependencies, CSV export.
+            </p>
+          </Link>
+        </div>
+        <div className="rounded-lg border border-zinc-200 bg-white p-4 hover:border-zinc-400">
+          <Link href={`/projects/${project.id}/sprints`} className="block">
+            <div className="flex items-center gap-1.5">
+              <p className="font-medium">Sprints</p>
+              <HelpTip term="sprints-box" />
+            </div>
+            <p className="mt-1 text-xs text-zinc-500">
+              {project.sprints.length} sprint(s) — plan batches of tickets with a
+              capacity.
+            </p>
+          </Link>
+        </div>
       </div>
     </div>
   );

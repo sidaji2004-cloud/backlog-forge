@@ -6,6 +6,7 @@ import { computeSprintStats, computeCycleTimeSummary } from "@/lib/analytics";
 import { DemoBanner } from "@/components/DemoBanner";
 import { auth } from "@/auth";
 import { canViewProject } from "@/lib/authz";
+import { HelpTip } from "@/components/HelpTip";
 
 const CHART_HEIGHT = 160;
 const BAR_WIDTH = 26;
@@ -82,9 +83,12 @@ export default async function AnalyticsPage({
       </div>
 
       <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-zinc-700">
-          Sprint commitment vs completion
-        </h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-medium text-zinc-700">
+            Sprint commitment vs completion
+          </h2>
+          <HelpTip term="sprint-commitment-vs-completion" />
+        </div>
         <p className="mt-0.5 text-xs text-zinc-500">
           Gray = points committed to the sprint. Green = points actually completed.
         </p>
@@ -145,7 +149,10 @@ export default async function AnalyticsPage({
       </section>
 
       <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-4">
-        <h2 className="text-sm font-medium text-zinc-700">Cycle time</h2>
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-medium text-zinc-700">Cycle time</h2>
+          <HelpTip term="cycle-time" />
+        </div>
         {cycleTime.averageDays === null ? (
           <p className="mt-2 text-sm text-zinc-500">No completed tickets yet.</p>
         ) : (

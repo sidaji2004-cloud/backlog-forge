@@ -8,6 +8,7 @@ import { AutoPackButton } from "@/components/AutoPackButton";
 import { DemoBanner } from "@/components/DemoBanner";
 import { auth } from "@/auth";
 import { canViewProject } from "@/lib/authz";
+import { HelpTip } from "@/components/HelpTip";
 
 export default async function SprintsPage({
   params,
@@ -40,7 +41,10 @@ export default async function SprintsPage({
         ]}
       />
       <div className="mt-1 flex flex-wrap items-center gap-4">
-        <h1 className="text-2xl font-semibold">Sprints</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-semibold">Sprints</h1>
+          <HelpTip term="sprints-box" size="md" />
+        </div>
         <div className="flex overflow-hidden rounded-md border border-zinc-200 text-sm">
           <Link href={`/projects/${id}/board`} className="px-3 py-1 hover:bg-zinc-50">
             Board
@@ -92,13 +96,17 @@ export default async function SprintsPage({
                   </p>
                 </div>
                 <div className="text-right text-sm">
-                  <p className={over ? "font-medium text-red-600" : ""}>
-                    {committed} / {s.capacity} pts committed
-                    {over && " — over capacity!"}
-                  </p>
+                  <div className="flex items-center justify-end gap-1">
+                    <p className={over ? "font-medium text-red-600" : ""}>
+                      {committed} / {s.capacity} pts committed
+                      {over && " — over capacity!"}
+                    </p>
+                    <HelpTip term="capacity" align="right" />
+                  </div>
                   <p className="text-xs text-zinc-500">{done} pts done</p>
-                  <div className="mt-1">
+                  <div className="mt-1 flex items-center justify-end gap-1">
                     <AutoPackButton sprintId={s.id} />
+                    <HelpTip term="auto-pack" align="right" />
                   </div>
                 </div>
               </div>
@@ -170,7 +178,10 @@ export default async function SprintsPage({
             />
           </label>
           <label className="text-xs text-zinc-500">
-            Capacity (pts)
+            <span className="inline-flex items-center gap-1">
+              Capacity (pts)
+              <HelpTip term="capacity" />
+            </span>
             <input
               type="number"
               name="capacity"
