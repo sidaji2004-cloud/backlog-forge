@@ -43,6 +43,8 @@ export function TicketDetail({
   const [error, setError] = useState<string | null>(null);
   const [ac, setAc] = useState(ticket.acceptanceCriteria);
   const [acDirty, setAcDirty] = useState(false);
+  const [desc, setDesc] = useState(ticket.description ?? "");
+  const [descDirty, setDescDirty] = useState(false);
   const [newBlocker, setNewBlocker] = useState("");
 
   const run = (fn: () => Promise<unknown>) =>
@@ -138,14 +140,32 @@ export function TicketDetail({
         </label>
       </div>
 
-      {ticket.description && (
-        <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
+      <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
+        <div className="flex items-center justify-between">
           <p className="text-sm font-medium">Description</p>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-700">
-            {ticket.description}
-          </p>
+          <button
+            onClick={() =>
+              run(async () => {
+                await updateTicket(ticket.id, { description: desc });
+                setDescDirty(false);
+              })
+            }
+            disabled={!descDirty || isPending}
+            className="rounded-md bg-zinc-900 px-3 py-1 text-xs font-medium text-white disabled:opacity-40"
+          >
+            {descDirty ? "Save" : "Saved"}
+          </button>
         </div>
-      )}
+        <textarea
+          value={desc}
+          onChange={(e) => {
+            setDesc(e.target.value);
+            setDescDirty(true);
+          }}
+          rows={4}
+          className="mt-2 w-full rounded-md border border-zinc-200 p-2 text-sm"
+        />
+      </div>
 
       <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
         <div className="flex items-center justify-between">
