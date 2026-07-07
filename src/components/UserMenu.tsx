@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
+import type { Session } from "next-auth";
 
 export async function UserMenu() {
-  const session = await auth();
+  // Same reasoning as the root layout: auth() hits the database, and a brief
+  // hiccup here must not crash the page — fall back to "signed out" instead.
+  let session: Session | null = null;
+  try {
+    session = await auth();
+  } catch {
+    session = null;
+  }
 
   if (!session?.user) {
     return (

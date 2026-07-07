@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { CommandPalette } from "@/components/CommandPalette";
 import { UserMenu } from "@/components/UserMenu";
 import { auth } from "@/auth";
+import type { Session } from "next-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,7 +54,17 @@ export default async function RootLayout({
   // Signed-in users see: their projects + the demo. Signed-out visitors see:
   // just the demo. Matches canViewProject() so nothing shows up here that a
   // click would then 404 on.
-  const session = await auth();
+  //
+  // auth() itself does a database lookup (session strategy = "database") —
+  // a brief connection hiccup here must not crash the ENTIRE app shell, since
+  // every single page on the site renders through this file. Treat a failed
+  // lookup the same as "signed out" rather than letting it throw.
+  let session: Session | null = null;
+  try {
+    session = await auth();
+  } catch {
+    session = null;
+  }
   const currentUserId = session?.user?.id ?? null;
   let projects: { id: string; name: string }[] = [];
   try {
