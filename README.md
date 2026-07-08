@@ -21,6 +21,27 @@ BacklogForge is a working demonstration of using AI as a PM's drafting partner, 
 
 What's next: real two-way sync with Jira/Linear (currently CSV export only), and richer analytics — see the Roadmap below.
 
+### First real run: Chargeback Dispute Manager
+
+I put BacklogForge through a full real-world run — turning a Stripe 
+chargeback tracker idea into a complete BRD → PRD → FSD → 18-ticket 
+backlog, then executed the first sprint through the kanban board and 
+analytics.
+
+**What I found:**
+- The AI drafted real, Stripe-API-literate specs on the first try, 
+  including correct reason codes and evidence-collection patterns.
+- The AI also over-scoped in three places I had to catch during review 
+  (no manual-entry fallback, orphan backend work, Redis for a trivial 
+  rate limit).
+- The review-then-approve gate is what made the difference — several 
+  fixes went in before any code would have been generated.
+
+![Dependency graph](docs/case-study/03-dependency-graph.png)
+![Analytics dashboard](docs/case-study/06-analytics.png)
+
+Screenshots + full review notes: [docs/case-study/](docs/case-study/)
+
 ## The vision this is Stage 1 of
 
 Long-term, BacklogForge grows into an AI product-discovery platform: a chat-based interview to sharpen your idea, a multi-agent document pipeline, and real two-way sync into Jira and Linear (see the plan in `~/.claude/plans/act-as-a-lead-floating-wolf.md`). **Stage 1 shipped the thinnest working version of the whole chain**; Stage 3 added the execution-side polish (Gherkin acceptance criteria, sprint auto-packing, the dependency graph); Stage 4 added PM analytics and this deployment.
