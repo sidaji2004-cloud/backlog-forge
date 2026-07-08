@@ -41,6 +41,7 @@ analytics.
 ![Analytics dashboard](docs/case-study/06-analytics.png)
 
 Screenshots + full review notes: [docs/case-study/](docs/case-study/)
+Sample generated docs: [BRD](docs/case-study/sample-docs/BRD.md) · [PRD](docs/case-study/sample-docs/PRD.md) · [FSD](docs/case-study/sample-docs/FSD.md)
 
 ## The vision this is Stage 1 of
 
